@@ -1,0 +1,508 @@
+---
+title: "PROJECT  Charity Navigator Analysis and Regression Predict"
+author: "Hana Ben Ali"
+date: "12/30/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# About the project 
+this  dataset called " Charity Navigator Analysis and Regression Predict" has teased my curiosity and pushed me to use it in my first project in R studio  especially because I believe that data analysis is a strong power not only  to make  people lives better but also to eliminate roots of corruptiion in every field and make lives easier in this earth.I'm excited to analyse thee efficiency of charity organization in the United states according to some scores and pther features .I found this dataset on kaggle 
+
+# Okey , First let's introduce this dataset :
+Charity Navigator is a major charity assessment organization that evaluates charitable organizations in the United States, operating as a free  organization that accepts no advertising or donations from the organizations it evaluates.
+
+The data is a public service of Charity Navigator, but the data is likely owned by individual charities. Charity Navigator collects this data. This data was webscraped in May 2019 but uses rating details mostly from 2017. For the most updated information, read about the Charity Navigator Search API  and learn how to apply for access.
+# Some Exploratory Questions
+ 1/ Which states have the most rated charities, the least?
+ 
+2/Do larger or smaller charities spend more on fundraising efforts? 
+
+3/Which categories or causes of charities tend to compensate their leaders the most?
+
+4/Is there any correlation between financial score & accountability score?   
+
+#                   The Features   
+
+#### -ascore-*
+**Accountability & Transparency Score - %.   
+
+#### -Category       
+
+#### -description-*    
+** Mission & Description -   
+
+#### -EIN -*
+
+** ID number   
+
+#### -tot_exp - Total Expenses in (Program , Funding ,Administrative) 
+
+#### -admin_exp_p -*   
+
+**Administrative Expenses Percentage (of total expenses)%.  
+
+#### -fund_eff -*     
+
+**Funding Efficiency in (amount spent to raise 1 in donations) .
+
+#### -fund_exp_p -*   
+
+**Funding Expenses Percentage (of total expenses).
+
+#### -program_exp_p -*   
+
+**Program Expenses Percentage (of total expenses).
+
+#### -fscore -*
+
+**Financial Score (out of 100)
+
+#### -leader -*       
+**Name of Leader
+#### -leader_comp-*
+
+**Compensation of Leader in 
+
+#### -leader_comp_p-*
+
+
+**Compensation of Leader Percentage.
+
+#### -motto-*
+
+**Tagline.(slogan)
+
+#### -name -*
+
+**Name of Charity.
+
+#### -tot_rev-*
+
+**Total Revenue .
+
+#### -score-*
+
+**Overall Score (out of 100).
+
+#### -state
+
+#### -subcategory-*
+
+**Subcategory.
+
+#### -size-*
+
+**Size of Charity (based on Total Expenses).
+
+#### -program_exp-*
+
+**Program Expenses in (amount spent on program & services it delivers).
+
+#### -fund_exp -*
+
+**Funding Expenses in (amount spent on raising money).
+
+#### -admin_exp -*
+
+**Administrative Expenses in $ (amount spent on overhead, staff, meeting costs).
+
+
+
+
+
+
+
+
+```{r data}
+data<- read.csv("C:\\Users\\hanab\\Desktop\\CLEAN_charity_data.csv")
+head(data)
+```
+
+
+```{r }
+data2<- subset( data, select = c (description,motto,ein,leader))
+head(data2)
+data<- subset( data, select =-c (description,motto,ein,leader))
+head(data)
+```
+
+### Data Restructure   
+
+-  Reorder the features because they don't make sense in order to make the data easier to read
+- Drop 4 columns because it has a lot of description and explanation and may be useful in another project
+
+
+  1)description: Mission & Description  
+
+  2)ein: : Name of Leader   
+
+  3)leader: Name of Leader   
+
+  4)motto::Tagline like slogan  
+```{r }  
+data<- subset( data, select=c(name,state,category,subcategory,tot_rev,tot_exp,size,admin_exp,admin_exp_p,fund_exp,fund_exp_p,fund_eff,program_exp,program_exp_p,leader_comp,leader_comp_p,fscore,ascore,score))
+head(data)
+```  
+# Data Explortaion 
+```{r}
+
+
+
+#to count each value is repeated  in each table and also the number  NA values in  each of them 
+
+data.frame(table(data$size))
+# a plot for the size 
+library(ggplot2)
+
+qplot(size,data=data,fill=size,main = "              counting distinct charitable organization")
+
+c<-data.frame(table(data$category))
+print(c)
+categories<-as.factor(c[,1])
+
+print(categories)
+
+
+```
+
+```{r}
+
+
+
+# load the library
+library(forcats)
+library(dplyr)
+#(The forcats library is a library from the tidyverse especially made to handle factors in R. It provides a suite of useful tools that solve common problems with factors. The fct_reorder() function allows to reorder the factor (category here) following the value of another column (Freq for example).
+
+# Reorder following the value of another column:
+
+
+  c %>%
+  mutate(Var1=fct_reorder(Var1,Freq)) %>%   
+  ggplot( aes(x=Var1, y=Freq)) +
+    geom_segment( aes(xend=Var1, yend=0)) +
+    geom_point( size=4, color="orange") +
+    coord_flip() +
+    theme_bw() +
+    xlab("")
+
+
+
+
+
+c %>%
+  mutate(Var1=fct_reorder(Var1,Freq)) %>%   
+  ggplot( aes(x=Var1, y=Freq)) +
+    geom_bar(stat="identity", fill= c("#cae00d","#eec591","#cdaa7d","#b22222","#a17a74","#cc5500","#e97451","#8a3324","#bd33a4","#702963","#800020"), alpha=.6, width=.4)+
+    coord_flip() +
+    xlab("") +
+    theme_bw()
+```
+```{r}
+c<- data.frame(table(data$subcategory))
+print(c)
+   
+# For MORE clearness
+  c %>%
+  mutate(Var1=fct_reorder(Var1,Freq)) %>%   
+  ggplot( aes(x=Var1, y=Freq)) +
+    geom_segment( aes(xend=Var1, yend=0)) +
+    geom_point( size=2, color=c("#cae00d","#eec591","#cdaa7d","#b22222","#a17a74","#cc5500","#e97451","#8a3324","#bd33a4","#702963","#800020","#cae00d","#eec591","#cdaa7d","#b22222","#a17a74","#cc5500","#e97451","#8a3324","#bd33a4","#702963","#cae00d","#eec591","#cdaa7d","#b22222","#a17a74","#cc5500","#e97451","#8a3324","#bd33a4","#702963","#800020","#cae00d","#eec591","#cdaa7d","#b22222","#a17a74")) +
+    coord_flip() +
+    theme_bw() +
+    xlab("")
+
+
+
+```
+```{r}
+description<- subset(data,select=c(name,state,category,subcategory,size))
+
+library(Hmisc)
+
+c<-describe(description)
+print (c)
+ data[data$name=='Zoo Atlanta',]
+
+
+```
+```{r}
+library(dplyr)
+#number of charities in each state
+data %>% 
+  count(state)
+#data summary
+data.frame(unclass(summary(data)), check.names = FALSE, stringsAsFactors = FALSE)
+#charity organizations with total revenue <10
+minumrevenues<-data[data$tot_rev< 10,]
+print(minumrevenues)
+qplot(size,category,data=data)+facet_grid(.~as.factor(data$tot_rev< 10))
+
+```
+```{r}
+#charity organizations with fscore <10
+minumscores<-data[data$fscore< 10,]
+print(minumscores)
+qplot(size,category,data=data)+facet_grid(.~as.factor(data$fscore< 10))
+
+#charity organizations with leader_comp=0
+
+leader_comp_null<-data[data$leader_comp==0,]
+print(head(leader_comp_null))
+print(qplot(size,category,data=data)+facet_grid(.~as.factor(data$leader_comp==0)))
+
+
+#sapply(data, function(x) sum(is.na(x))) TO calculated missing values 
+data.frame(sapply(data, function(x) sum(is.na(x))), check.names = FALSE, stringsAsFactors = FALSE)
+```
+
+
+```{r}
+
+library(cowplot)
+
+NAMES=c("tot_rev","tot_exp","admin_exp","fund_exp","fund_exp_p","fund_eff","program_exp_p","leader_comp","leader_comp_p","ascore","fscore")
+
+listcolindex<-colnames(data)
+
+for (i in NAMES){
+  for (j in (1:length(listcolindex) ) ){
+    if (i==listcolindex[j]  ){
+      par(mfrow = c(1,3))
+      print(qplot(x=,y=data[,j],data=data,geom="boxplot")+ylab("")+xlab(i))
+     
+    }
+  }
+}
+```
+```{r}
+dataCOR<-subset(data,select=-c(name,state,category,subcategory,size))
+
+
+
+
+library(psych)
+#The corPlot function creates a graph of a correlation matrix, coloring the regions by the level of correlation.
+cormat <- round(cor(dataCOR),2)
+
+corPlot(cormat)
+
+
+
+```
+
+
+
+
+
+
+
+
+
+# Observation after data exploring
+1. Need to add column for the names of the states and their regions,through join another data set.   
+
+2. There are negative values in the total revenue.   
+
+3. Missing data in the compensation of leaders in the columns for percentages and amounts.
+
+
+4.There are outlier data in total revenues, total expenses, and all expenses columns because there are some charities their revenue amount more than billion.
+
+
+5. Minimum values in the Financial Score and Compensation of Leader, Contain zeros in all size and categories except research and evironment that consist a recognizable power in the USA that cannot neglect  .
+
+
+6. some states have count of charities more than other states up to 900 charities while some states have between 1 to 20 charities.
+
+
+7. about positive correlation we have strong relations between total revenue and total expenses, also with program expenses up to 99%.
+8.strong correlation between score and financial Score , and also a strong correlation with accountability & Transparency Score.
+9. About negative correlation we have strong relations between program expenses percentage and funding expenses percentage , administrative expenses percentage ,Funding Efficiency.
+10. The category of the most popular charities in the United States is the Human Services Organization because provide networks of direct services to people in need. They feed our hungry, strengthen our communities, shelter our homeless, care for our elderly, and nurture our young.
+ 
+ 
+# DATA cleaning   
+```{r}
+## there are negative values in the total revenue i use the abs function 
+
+data$tot_rev<- abs(data$tot_rev) 
+
+
+sum=0
+for (i in 1:dim(data)[1]){
+  if (data$tot_rev[i]<0){
+    sum=sum+1}
+}
+print("number of negative values in revenue")
+print (sum)
+```
+
+```{r}
+#as we saw in the data explortaion there is Missing data (NA) in the compensation of leaders in the columns for percentages and amounts.
+ data<- na.omit(data)
+
+# to check that we don't have NA values anymore
+data.frame(unclass(summary(data)), check.names = FALSE, stringsAsFactors = FALSE)
+sapply(data, function(x) sum(is.na(x)))
+
+```
+```{r}
+
+hist(data$leader_comp,main="Histogram for leader_comp",xlab = "leader_comp",
+border="red",col="#eec591")
+hist(data$leader_comp_p,main="Histogram for leader_comp",xlab = "leader_comp_p",
+border="#b22222",col="red")
+
+
+
+```
+#Total Revenues Analysis
+
+```{r}
+library(plotly)
+summary(data$tot_rev)
+library(forcats)
+
+
+# charities their revenue amount more than 250 million.
+ c <- subset(data,select = c(name,tot_rev))
+highest_tot_rev<-c[data$tot_rev>=250000000,]
+print("NUMBER OFcharities their revenue amount more than 250 million")
+
+print(dim(highest_tot_rev)[1])
+# Reorder following the value of another column:
+highest_tot_rev %>%
+  mutate(fct_reorder(name,tot_rev)) %>%
+  ggplot( aes(x=name, y=tot_rev)) +
+    geom_bar(stat="identity", fill="#f68060",alpha=.8, width=.4) +
+    coord_flip(expand=TRUE) +
+    xlab("") +
+    theme_bw()+
+    theme(axis.text.y=element_text(size=5),
+        axis.title=element_text(size=14,face="bold"))
+  
+
+highest_tot_rev %>%
+  mutate(Var1=fct_reorder(name,tot_rev)) %>%   
+  ggplot( aes(x=name, y=tot_rev)) +
+    geom_segment( aes(xend=Var1, yend=0)) +
+    geom_point( size=2, color=c("#cae00d")) +
+    coord_flip() +
+    theme_bw() +
+    xlab("")+
+    theme(axis.text.y=element_text(size=5),
+        axis.title=element_text(size=14,face="bold"))
+#charities their revenue amount less than half million.
+
+ c2<- subset(data,select = c(name,tot_rev))
+less_tot_rev<-c2[data$tot_rev<=500000,]
+print("NUMBER OF charities their revenue amount less than half million")
+print(dim(less_tot_rev)[1])
+
+
+less_tot_rev  %>%
+  mutate(Var1=fct_reorder(name,tot_rev)) %>%   
+  ggplot( aes(x=name, y=tot_rev)) +
+    geom_segment( aes(xend=name, yend=0)) +
+    geom_point( size=2, color=c("#cae00d")) +
+    coord_flip() +
+    theme_bw() +
+    xlab("")+
+    theme(axis.text.y=element_text(size=5),
+        axis.title=element_text(size=14,face="bold"))
+
+
+```
+
+#Is there any correlation between  score & total_rev?
+
+#Is there any correlation between financial score & accountability score?
+Accountability is an obligation or willingness by a charity to explain its actions to its stakeholders.
+Transparency is an obligation or willingness by a charity to publish and make available critical data about the organization.
+```{r}
+dataCOR2<-subset(data,select=c(tot_rev,fscore,ascore,score))
+
+#The corPlot function creates a graph of a correlation matrix, coloring the regions by the level of correlation.
+cormat <- round(cor(dataCOR2),2)
+
+corPlot(cormat)
+
+
+
+
+```
+## THERE isn't correlation between total revenue and any score and between scores
+
+#Funding Expenses Analysis¶
+Do larger or smaller charities spend more on fundraising efforts?
+Fundraising Expenses: Charity Navigator rates organizations with at least 1% of its expenses allocated to fundraising for three consecutive years. Charities depending on the public for support fundraise to sustain their operations.
+1 Dollar = 100 Cent
+```{r}
+qplot(x=size,y=fund_eff,data=data,geom="boxplot",fill=size)+ylab("fundraising efforts")+xlab("size")+theme(axis.text=element_text(size=12,color = "brown"),
+        axis.title=element_text(size=14,face="bold"))
+qplot(x=category,y=fund_eff,data=data,geom="boxplot",fill=category)+ylab("fundraising efforts")+xlab("category")+theme(axis.text.x=element_text(size=5,face="bold"),
+        axis.title=element_text(size=14,face="bold"))
+qplot(x=state,y=fund_eff,data=data,geom="boxplot",fill=state)+ylab("fundraising efforts")+xlab("category")+theme(axis.text.x=element_text(size=6),
+        axis.title=element_text(size=14,face="bold",color = "brown"))
+qplot(x=category,y=leader_comp,data=data)+ylab("leader_comp")+xlab("category")+theme(axis.text.x=element_text(size=4),axis.title=element_text(size=14,face="bold",color = "brown"))+ geom_jitter(aes(colour = category))
+qplot(x=admin_exp_p,y=category,data=data)+ylab("admin_exp_p")+xlab("category")+theme(axis.text.x=element_text(size=4),axis.title=element_text(size=14,face="bold",color = "brown"))+ geom_jitter(aes(colour = admin_exp_p))
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Conclusions:-
+
+
+1. 61 charities with a budget of more than $250 million.    
+
+2. 50 charities with a budget of less than 500,000.    
+
+3. More than half of charities are of small size.    
+
+4. There is no correlation between revenue and any score rate.     
+
+5. The most categories are human services, arts and culture, education, and health.     
+
+6. Most charities give compensation to leaders are of categories (international, education and health).      
+
+7. Most charities have high administrative expenses, which are the categories (arts, culture and religion), because their effectiveness is linked to the work of events and seminars and the preservation of heritage and identity.     
+
+8. Most charities are located in the south region.     
+
+9. northeast region has the highest revenue.    
+
+10. West Region has the highest rated scores.    
+
+
+11.Charities are small in size, pay funding expenses for each dollar more others, and this is logical because they are small in size and make a more effort to expand the segment of donors more than large charities.     
+
+12.Charities (international, religious) are less than spending funding expenses.
+
+
+
+
